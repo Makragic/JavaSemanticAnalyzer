@@ -1,0 +1,285 @@
+
+%{
+    #include <iostream>
+    #include <map>
+    #include <vector>
+    #include <cstdlib>
+    #include "class.hpp"
+    #define YYDEBUG 1
+    
+    extern int yylex();
+    
+    std::map<char,Class> _class_table;
+    std::map<char,Variable> _local_table;
+    
+    void yyerror(const char *message){
+    
+        fprintf(stderr, "%s", message);
+    }
+%}
+
+%union {
+
+    Expression* e;
+    char c;
+    Statement *stat;
+    std::string *s;
+    std::vector<char> *v;
+    std::vector<Class_declaration*> *cd;
+    std::vector<Statement*> *vstat;
+    std::vector<Class*> *vc;
+    Class *k;
+}
+
+%token class_token  end_token 
+%token <c> idclass_token id_token 
+%token <s> void_token int_token double_token string_token public_token private_token
+%token const_int_token const_double_token const_string_token
+
+%type <e> Izraz
+%type <stat> Deklaracija Naredba
+%type <s> Tip Enkapsulator
+%type <v> Niz_promenljivih 
+%type <cd> Deklaracija_klasa Niz_deklaracija
+%type <vstat> Niz_naredbi
+%type <k> Klasa
+%type <vc> Niz_klasa
+/*
+
+ TOKEN'S
+  LIFE
+ MATTERS
+ 
+ */
+ 
+ %left '+'
+ %nonassoc '(' ')'
+ 
+%%
+
+/* TODO:
+
+- Opseg
+- int x 
+  int y
+  int x greska
+  string x greska ...
+- Gde je doslo do greske
+
+
+*/
+
+
+/* Memorija: Sve se brise automatski zbog zavrsetka programa */
+Program: Niz_klasa end_token {
+
+    auto b = $1 -> begin();
+    auto e = $1 -> end();
+    for(; b !=e; b++)
+        if((*b)->typecheck() == true)
+            std::cout << (*b)->get_name() << ": Semanticki ispravno." << std::endl;
+        else
+            std::cout << (*b)->get_name() << ": Semanticki neispravno." << std::endl;
+    
+    exit(EXIT_SUCCESS);
+}
+;
+
+/* Memorija: Samo smo preusmerili pokazivace */
+Niz_klasa: Niz_klasa Klasa {
+
+    $$ = $1;
+    $$->push_back($2);
+}
+| Klasa {
+    
+    $$ = new std::vector<Class*>();
+    $$->push_back($1);
+    
+}
+;
+
+/* Memorija: Kopiramo pokazivace, brisemo vektor */
+Klasa: class_token idclass_token '{' Niz_deklaracija '}' {
+
+    $$ = new Class($2, *$4);
+    
+    if(_class_table.count($2)){
+    
+        std::cout << "Ponovna deklaracija " << $2 << " klase. \nSemanticki neispravno." << std::endl;
+        exit(EXIT_SUCCESS);
+    }
+    _class_table[$2] = *$$;
+    
+    delete $4;
+}
+;
+
+/* Memorija: Samo preusmeravamo pokazivace */
+Niz_deklaracija: Niz_deklaracija Deklaracija_klasa {
+
+    $$ = $1;
+    
+    auto b = $2 -> begin();
+    auto e = $2 -> end();
+    for(; b !=e; b++)
+        $$->push_back(*b);
+}
+| Deklaracija_klasa 
+;
+
+/* Memorija: Brisemo tipove i enkapsulatore, niz promenljivih */
+Deklaracija_klasa: Enkapsulator Tip Niz_promenljivih ';' {
+
+    
+    $$ = new std::vector<Class_declaration*>();
+    
+    for(char c : *$3) {
+        
+        $$->push_back(new Variable_declaration(*$1, *$2, c));
+        Variable v(c,*$2);
+        _local_table[c] = v;
+    }
+    
+    delete $1;
+    delete $2;
+    delete $3;
+}
+/* Memorija: Brisemo tipove i enkapsulatore, preusmeravamo pokazivace, brisemo vektor */
+| Enkapsulator Tip id_token '(' ')' '{' Niz_naredbi '}' {
+
+
+    $$ = new std::vector<Class_declaration*>();
+    $$->push_back(new Function_declaration(*$1, *$2, $3, *$7));
+    
+    Variable v($3,*$2);
+    _local_table[$3] = v;
+    
+    delete $1;
+    delete $2;
+    delete $7;
+}
+;
+
+/* Memorija: Brisu se kada se iskoriste */
+Enkapsulator: public_token
+| private_token
+;
+
+/* Memorija: Tipovi se brisu kada se iskoriste */
+Tip: int_token 
+| double_token 
+| string_token
+| idclass_token {
+
+    $$ = new std::string(1,$1);
+}
+| void_token
+;
+
+/* Memorija: Vektor char-ova, zna sam da se obrise */
+Niz_promenljivih: id_token ',' Niz_promenljivih {
+
+    $$ = $3;
+    $$->push_back($1);
+}
+| id_token {
+    
+    $$ = new std::vector<char>();
+    $$->push_back($1);
+}
+;
+
+/* Memorija: Samo napravimo vektor od postojecih naredbi */
+Niz_naredbi: Naredba ';' Niz_naredbi {
+
+        $$ = $3;
+        $$->push_back($1);
+}
+| Naredba ';' {
+
+    $$ = new std::vector<Statement*>();
+    $$->push_back($1);
+}
+;
+
+/* Memorija: Preusmerili smo pokazivace, Naredba & Izraz */
+Naredba: Deklaracija
+| id_token '=' Izraz {
+
+    
+    $$ = new Assignment($3, $1);
+}
+| Izraz {
+    
+    $$ = new Expression_statement($1);
+}
+;
+
+/* Memorija: Sve zna samo da se izbrise (brisemo samo tip) */
+Deklaracija: Tip id_token {
+
+    $$ = new Declaration($2, *$1);
+    Variable v($2,*$1);
+    _local_table[$2] = v;
+    
+    delete $1;
+}
+| Tip id_token '=' Izraz {
+
+        
+        $$ = new Declaration_and_assigment(*$1, $4, $2);
+        Variable v($2,*$1);
+        _local_table[$2] = v;
+        
+        delete $1;
+}
+;
+
+/* Memorija: Sve ispod zna samo da se izbrise */
+Izraz: id_token {
+
+    if(!_local_table.count($1))
+        $$ = new Variable($1,"false");
+    else 
+        $$ = new Variable($1, _local_table[$1].get_type());
+
+}
+| id_token '(' ')' {
+
+    $$ = new Function_call($1);
+}
+| id_token '.' id_token {
+
+    $$ = new Attribute_call($1,$3);
+}
+| id_token '.' id_token '(' ')' {
+
+    $$ = new Method_call($1,$3);
+}
+| Izraz '+' Izraz {
+
+    $$ = new Addition($1, $3);
+}
+| const_double_token {
+
+    $$ = new Constant("double");
+}
+| const_string_token {
+
+    $$ = new Constant("string");
+}
+| const_int_token {
+    
+    $$ = new Constant("int");
+}
+;
+
+%%
+
+int main(){
+
+    //yydebug = 1;
+    yyparse();
+    return 0;
+}
