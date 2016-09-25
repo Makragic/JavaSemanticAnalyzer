@@ -34,7 +34,7 @@
 %token class_token  end_token 
 %token <c> idclass_token id_token 
 %token <s> void_token int_token double_token string_token public_token private_token
-%token const_int_token const_double_token const_string_token
+%token <s> const_int_token const_double_token const_string_token
 
 %type <e> Izraz
 %type <stat> Deklaracija Naredba
@@ -64,7 +64,6 @@
   int y
   int x greska
   string x greska ...
-- Gde je doslo do greske
 
 
 */
@@ -75,12 +74,17 @@ Program: Niz_klasa end_token {
 
     auto b = $1 -> begin();
     auto e = $1 -> end();
-    for(; b !=e; b++)
-        if((*b)->typecheck() == true)
-            std::cout << (*b)->get_name() << ": Semanticki ispravno." << std::endl;
-        else
-            std::cout << (*b)->get_name() << ": Semanticki neispravno." << std::endl;
+    for(; b !=e; b++) {
     
+        std::cout << std::endl;
+        std::cout << " ---------------------- Klasa " << (*b)->get_name() << " ----------------------" << std::endl;
+        if((*b)->typecheck() == true)
+            std::cout << "Semanticki ispravno." << std::endl;
+        else
+            std::cout << "Semanticki neispravno." << std::endl;    
+    }
+    
+    std::cout << std::endl;
     exit(EXIT_SUCCESS);
 }
 ;
@@ -236,7 +240,7 @@ Deklaracija: Tip id_token {
 }
 ;
 
-/* Memorija: Sve ispod zna samo da se izbrise */
+/* Memorija: Sve zna samo da se izbrise sem stringova za konstante */
 Izraz: id_token {
 
     if(!_local_table.count($1))
@@ -263,15 +267,18 @@ Izraz: id_token {
 }
 | const_double_token {
 
-    $$ = new Constant("double");
+    $$ = new Constant("double", *$1);
+    delete $1;
 }
 | const_string_token {
 
-    $$ = new Constant("string");
+    $$ = new Constant("string", *$1);
+    delete $1;
 }
 | const_int_token {
     
-    $$ = new Constant("int");
+    $$ = new Constant("int", *$1);
+    delete $1;
 }
 ;
 

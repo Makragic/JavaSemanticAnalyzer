@@ -68,16 +68,19 @@ string {
 
 [0-9]+\.[0-9]+  {
 
+    yylval.s = new std::string(yytext);
     return const_double_token;
 }
 
 [0-9]+  {
-
+    
+    yylval.s = new std::string(yytext);
     return const_int_token;
 }
 
 \"[a-z\n]+\"  {
-
+    
+    yylval.s = new std::string(yytext);
     return const_string_token;
 }
 

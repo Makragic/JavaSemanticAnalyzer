@@ -107,6 +107,8 @@ class Expression {
 
 public:
     virtual std::string typecheck() = 0;
+    virtual std::string print() = 0;
+    virtual std::vector<std::string> get_errors() = 0;
     
 };
 
@@ -171,31 +173,43 @@ public:
     {}
     
     std::string typecheck();
+    std::string print();
     std::string get_type() {
             
         return _type;
     }
+    std::vector<std::string> get_errors() {
+     
+        return _errors;
+    }
 private:
     char _name;
     std::string _type;
+    std::vector<std::string> _errors;
 };
 
 class Constant : public Expression {
 
     
 public:
-    Constant(std::string type) 
-    : _type(type)
+    Constant(std::string type, std::string value)  
+    : _type(type), _value(value)
     {}
     
     std::string typecheck();
+    std::string print();
     std::string get_type() {
         
         return _type;
     }
+    std::vector<std::string> get_errors() {
+     
+        return _errors;
+    }
 private:
     std::string _type;
-    
+    std::string _value;
+    std::vector<std::string> _errors;
 };
 
 class Addition : public Expression {
@@ -206,8 +220,14 @@ public:
     {}
     
     std::string typecheck();
+    std::string print();
+    std::vector<std::string> get_errors() {
+     
+        return _errors;
+    }
 private:
     Expression *_lhs, *_rhs;
+    std::vector<std::string> _errors;
 };
 
 class Method_call : public Expression {
@@ -217,10 +237,16 @@ public:
     : _varname(varname), _name(name)
     {}
     
+    std::string print();
     std::string typecheck();
+    std::vector<std::string> get_errors() {
+     
+        return _errors;
+    }
 private:
     char _varname;
     char _name;
+    std::vector<std::string> _errors;
 };
 
 class Attribute_call : public Expression {
@@ -230,10 +256,16 @@ public:
     : _varname(varname), _name(name)
     {}
     
+    std::string print();
     std::string typecheck();
+    std::vector<std::string> get_errors() {
+     
+        return _errors;
+    }
 private:
     char _varname;
     char _name;
+    std::vector<std::string> _errors;
 };
 
 class Function_call : public Expression {
@@ -243,10 +275,15 @@ public:
     :  _name(name)
     {}
     
+    std::string print();
     std::string typecheck();
+    std::vector<std::string> get_errors() {
+     
+        return _errors;
+    }
 private:
     char _name;
+    std::vector<std::string> _errors;
 };
-
 
 #endif
