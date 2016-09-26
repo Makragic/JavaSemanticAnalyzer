@@ -4,15 +4,24 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <algorithm>
 
-class Class_declaration {
-    
-public:
-    virtual std::string get_encapsulation()=0;
-    virtual std::string get_type()=0;
-    virtual char get_name()=0;
-    virtual bool typecheck() = 0;
-};
+class Class;
+class Class_declaration;
+class Function_declaration;
+class Expression_statement;
+class Assignment;
+class Declaration;
+class Declaration_and_assigment;
+class Expression;
+class Variable;
+class Constant;
+class Addition;
+class Method_call;
+class Attribute_call;
+class Function_call;
+class Statement;
+
 
 class Class {
     
@@ -20,9 +29,12 @@ public:
     Class()
     {}
     
-    Class(char name,std::vector<Class_declaration*> cd)
-    :_name(name),_cd(cd)
-    {}
+    Class(char name, std::vector<Class_declaration*> cd, std::map<char, Variable> class_local, std::map<char, std::map<char, Variable> > function_local) 
+    :_name(name),_cd(cd), _class_local(class_local)
+    {
+        
+        _function_local.insert(function_local.begin(), function_local.end());
+    }
     
     bool typecheck();
     std::string get_type(char d);
@@ -38,10 +50,18 @@ public:
 private:
     char _name;
     std::vector<Class_declaration*> _cd;
+    std::map<char,Variable> _class_local;
+    std::map<char, std::map<char, Variable> > _function_local;
 };
 
-
-
+class Class_declaration {
+    
+public:
+    virtual std::string get_encapsulation()=0;
+    virtual std::string get_type()=0;
+    virtual char get_name()=0;
+    virtual bool typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local) = 0;
+};
 class Variable_declaration : public Class_declaration {
   
 public:
@@ -59,21 +79,17 @@ public:
         return _name;
     }
     
-    std::string get_encapsulation();
-    bool typecheck();
+    std::string get_encapsulation() {
+        
+        return _encapsulation;
+    }
+    bool typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local);
     
 private:
     
     std::string _encapsulation;
     std::string _type;
     char _name;
-};
-
-class Statement {
-  
-public:
-    virtual bool typecheck() = 0;
-    
 };
 
 class Function_declaration : public Class_declaration {
@@ -93,8 +109,11 @@ public:
         return _name;
     }
     
-    std::string get_encapsulation();
-    bool typecheck();
+    std::string get_encapsulation() {
+     
+        return _encapsulation;
+    }
+    bool typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local);
     
 private:
     std::string _encapsulation;
@@ -103,12 +122,10 @@ private:
     std::vector<Statement*> _body;
 };
 
-class Expression {
-
+class Statement {
+  
 public:
-    virtual std::string typecheck() = 0;
-    virtual std::string print() = 0;
-    virtual std::vector<std::string> get_errors() = 0;
+    virtual bool typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name) = 0;
     
 };
 
@@ -118,7 +135,7 @@ public:
     Expression_statement(Expression *e) : _e(e)
     {}
     
-    bool typecheck();
+    bool typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name);
 private:
     Expression *_e;
 };
@@ -129,7 +146,7 @@ public:
     Assignment(Expression *rhs, char name) : _rhs(rhs), _name(name)
     {}
     
-    bool typecheck();
+    bool typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name);
 private:
     Expression *_rhs;
     char _name;
@@ -142,7 +159,7 @@ public:
         : _name(name), _type(type)
     {}
     
-    bool typecheck();
+    bool typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name);
 private:    
     char _name;
     std::string _type;
@@ -155,11 +172,20 @@ public:
         : _type(type), _rhs(rhs), _name(name)
     {}
     
-    bool typecheck();
+    bool typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name);
 private:
     std::string _type;
     Expression *_rhs;
     char _name;
+};
+
+class Expression {
+
+public:
+    virtual std::string typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name) = 0;
+    virtual std::string print() = 0;
+    virtual std::vector<std::string> get_errors() = 0;
+    
 };
 
 class Variable : public Expression {
@@ -172,7 +198,7 @@ public:
     : _name(name), _type(type)
     {}
     
-    std::string typecheck();
+    std::string typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name);
     std::string print();
     std::string get_type() {
             
@@ -196,7 +222,7 @@ public:
     : _type(type), _value(value)
     {}
     
-    std::string typecheck();
+    std::string typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name);
     std::string print();
     std::string get_type() {
         
@@ -219,7 +245,7 @@ public:
     : _lhs(lhs), _rhs(rhs)
     {}
     
-    std::string typecheck();
+    std::string typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name);
     std::string print();
     std::vector<std::string> get_errors() {
      
@@ -238,7 +264,7 @@ public:
     {}
     
     std::string print();
-    std::string typecheck();
+    std::string typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name);
     std::vector<std::string> get_errors() {
      
         return _errors;
@@ -257,7 +283,7 @@ public:
     {}
     
     std::string print();
-    std::string typecheck();
+    std::string typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name);
     std::vector<std::string> get_errors() {
      
         return _errors;
@@ -276,7 +302,7 @@ public:
     {}
     
     std::string print();
-    std::string typecheck();
+    std::string typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name);
     std::vector<std::string> get_errors() {
      
         return _errors;

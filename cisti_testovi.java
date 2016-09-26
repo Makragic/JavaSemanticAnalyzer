@@ -14,7 +14,7 @@ class B {
      int z = a.x;
      int d; 
      string h = a.y; 
-     double m = y + d; 
+     double m = a.y + d; 
      a.f();
      int y = a.z; 
      int t = a.m; 
@@ -93,4 +93,20 @@ class J {
        z = 2;
        p = 4;
    }
+}
+
+class K {
+
+  public int x;
+  public int q() {
+
+    int x;
+    int y;
+  }
+  public int y;
+  public int w() {
+
+    int x;
+    int y;
+  }
 }

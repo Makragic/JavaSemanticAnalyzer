@@ -30,6 +30,27 @@ class A {
    }
 }
 
+// SPECIJALNI SLUCAJ 3: Netacno (Ponovna deklaracija lokalne promenljive)
+class A {
+   public int x, y;
+   private int z;
+   public double f() {
+      int l = 5;
+      string l;
+   }
+}
+
+// SPECIJALNI SLUCAJ 4: Netacno (Ponovna deklaracija u okviru klase)
+class A {
+   public int x, y;
+   private int z;
+   private string x, z;
+   public double f() {
+      y = 0;
+   }
+}
+
+
 /*                                         TESTOVI                                         */
 // TEST 1: Tacno
 class A {
@@ -139,7 +160,22 @@ class J {
    }
 }
 
-//k
+// TEST 11: Tacno
+class K {
+
+  public int x;
+  public int q() {
+
+    int x;
+    int y;
+  }
+  public int y;
+  public int w() {
+
+    int x;
+    int y;
+  }
+}
 
 
 
@@ -191,7 +227,6 @@ class C {
    public A a;
    public string d; 
    public void g() {
-
       int z = a.x;
       a.f();
    }
