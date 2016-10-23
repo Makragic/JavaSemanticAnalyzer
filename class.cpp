@@ -61,9 +61,9 @@ bool Assignment::typecheck(std::map<char,Variable> class_local, std::map<char, s
     
     if(!function_local[name].count(_name) && !class_local.count(_name)) {
         
-        std::cout << "Greska pri pokusaju dodele: " << std::endl;
+        std::cout << "Assignment error: " << std::endl;
         std::cout <<  _name << " = " << _rhs->print() << ";" << std::endl;
-        std::cout << "> Ne postoji promenljiva " << std::string(1,_name) << "." << std::endl;
+        std::cout << "> No such variable " << std::string(1,_name) << "." << std::endl;
         return false;
     }
     
@@ -77,7 +77,7 @@ bool Assignment::typecheck(std::map<char,Variable> class_local, std::map<char, s
             return true;
         else {
         
-            std::cout << "Greska pri pokusaju dodele: " << std::endl;
+            std::cout << "Assignment error: " << std::endl;
             std::cout <<  _name << " = " << _rhs->print() << ";" << std::endl;
             for(auto string : _rhs->get_errors())
                 std::cout << "> " << string << std::endl;
@@ -94,7 +94,7 @@ bool Assignment::typecheck(std::map<char,Variable> class_local, std::map<char, s
             return true;
         else {
         
-            std::cout << "Greska pri pokusaju dodele: " << std::endl;
+            std::cout << "Assignment error: " << std::endl;
             std::cout <<  _name << " = " << _rhs->print() << ";" << std::endl;
             for(auto string : _rhs->get_errors())
                 std::cout << "> " << string << std::endl;
@@ -120,9 +120,9 @@ bool Declaration_and_assigment::typecheck(std::map<char,Variable> class_local, s
     if ((_type == "double" && rhs_typecheck == "int") || (_type == "int" && rhs_typecheck == "double"))
         return true;
     
-    std::cout << "Greska pri pokusaju deklaracije i dodele: " << std::endl;
+    std::cout << "Declaration and assignment error: " << std::endl;
     std::cout <<  _type << " " << _name << " = " << _rhs->print() << ";" << std::endl;
-    std::cout << "> Nekompatibilni tipovi." << std::endl;
+    std::cout << "> Noncompatable types." << std::endl;
     for(auto string : _rhs->get_errors())
             std::cout << "> " << string << std::endl;
     
@@ -151,7 +151,7 @@ std::string Addition::typecheck(std::map<char,Variable> class_local, std::map<ch
     if((lhs_type=="double" && rhs_type=="int") || (lhs_type=="int" && rhs_type=="double"))
         return "double";
     else{
-        _errors.push_back("Nekompatibilni tipovi");
+        _errors.push_back("Noncompatable types.");
         for(auto string : _lhs->get_errors())
             _errors.push_back(string);
         for(auto string : _rhs->get_errors())
@@ -166,13 +166,13 @@ std::string Method_call::typecheck(std::map<char,Variable> class_local, std::map
     
     if(!class_local.count(_varname) && !function_local[name].count(_varname)){
         
-        _errors.push_back("Metod " + std::string(1,_varname) + " nije deklarisan.");
+        _errors.push_back("Method " + std::string(1,_varname) + " not declared.");
         return "false";
     }
     
     if(!_class_table.count(class_local[_varname].get_type()[0])){
         
-        _errors.push_back("Ne postoji klasa " + std::string(1,class_local[_varname].get_type()[0]) + ".");
+        _errors.push_back("No such class " + std::string(1,class_local[_varname].get_type()[0]) + ".");
         return "false";
     }
     
@@ -180,7 +180,7 @@ std::string Method_call::typecheck(std::map<char,Variable> class_local, std::map
         for(auto decl : _class_table[class_local[_varname].get_type()[0]].get_declarations())
             if(decl->get_name() == _name && decl->get_encapsulation() == "private"){
             
-            _errors.push_back("Metod " + std::string(1,_varname) + "." + std::string(1,_name) + " je private.");
+            _errors.push_back("Method " + std::string(1,_varname) + "." + std::string(1,_name) + " is private.");
             return "false";
         }
     } 
@@ -189,7 +189,7 @@ std::string Method_call::typecheck(std::map<char,Variable> class_local, std::map
         for(auto decl : _class_table[function_local[name][_varname].get_type()[0]].get_declarations())
             if(decl->get_name() == _name && decl->get_encapsulation() == "private"){
             
-            _errors.push_back("Metod " + std::string(1,_varname) + "." + std::string(1,_name) + " je private.");
+            _errors.push_back("Method " + std::string(1,_varname) + "." + std::string(1,_name) + " is private.");
             return "false";
         }
     }
@@ -203,7 +203,7 @@ std::string Method_call::typecheck(std::map<char,Variable> class_local, std::map
         
         if(!exists){
             
-            _errors.push_back("Metod " + print() + " ne postoji.");
+            _errors.push_back("Method " + print() + " doesn't exist.");
             return "false";
             
         }
@@ -220,7 +220,7 @@ std::string Method_call::typecheck(std::map<char,Variable> class_local, std::map
         
         if(!exists){
             
-            _errors.push_back("Metod " + print() + " ne postoji.");
+            _errors.push_back("Method " + print() + " doesn't exist.");
             return "false";
             
         }
@@ -234,13 +234,13 @@ std::string Attribute_call::typecheck(std::map<char,Variable> class_local, std::
      
     if(!class_local.count(_varname) && !function_local[name].count(_varname)){
         
-        _errors.push_back("Promenljiva " + std::string(1,_varname) + " nije deklarisana.");
+        _errors.push_back("Variable " + std::string(1,_varname) + " not declared.");
         return "false";
     }
     
     if(!_class_table.count(class_local[_varname].get_type()[0])){
         
-        _errors.push_back("Ne postoji klasa " + std::string(1,class_local[_varname].get_type()[0]) + ".");
+        _errors.push_back("No such class " + std::string(1,class_local[_varname].get_type()[0]) + ".");
         return "false";
     }
     
@@ -248,7 +248,7 @@ std::string Attribute_call::typecheck(std::map<char,Variable> class_local, std::
         for(auto decl : _class_table[class_local[_varname].get_type()[0]].get_declarations())
             if(decl->get_name() == _name && decl->get_encapsulation() == "private"){
             
-            _errors.push_back("Atribut " + std::string(1,_varname) + "." + std::string(1,_name) + " je private.");
+            _errors.push_back("Attribute " + std::string(1,_varname) + "." + std::string(1,_name) + " is private.");
             return "false";
         }
     } 
@@ -257,7 +257,7 @@ std::string Attribute_call::typecheck(std::map<char,Variable> class_local, std::
         for(auto decl : _class_table[function_local[name][_varname].get_type()[0]].get_declarations())
             if(decl->get_name() == _name && decl->get_encapsulation() == "private"){
             
-            _errors.push_back("Atribut " + std::string(1,_varname) + "." + std::string(1,_name) + " je private.");
+            _errors.push_back("Attribute " + std::string(1,_varname) + "." + std::string(1,_name) + " is private.");
             return "false";
         }
     }
@@ -271,7 +271,7 @@ std::string Attribute_call::typecheck(std::map<char,Variable> class_local, std::
         
         if(!exists){
             
-            _errors.push_back("Atribut " + print() + " ne postoji.");
+            _errors.push_back("Attribute " + print() + " doesn't exist.");
             return "false";
             
         }
@@ -288,7 +288,7 @@ std::string Attribute_call::typecheck(std::map<char,Variable> class_local, std::
         
         if(!exists){
             
-            _errors.push_back("Atribut " + print() + " ne postoji.");
+            _errors.push_back("Attribute " + print() + " doesn't exist.");
             return "false";
             
         }
@@ -301,7 +301,7 @@ std::string Function_call::typecheck(std::map<char,Variable> class_local, std::m
     
     if(!class_local.count(_name)){
         
-        _errors.push_back("Funkcija " + std::string(1,_name) + " nije deklarisana.");
+        _errors.push_back("Function " + std::string(1,_name) + " not declared.");
         return "false";
     }
     else
