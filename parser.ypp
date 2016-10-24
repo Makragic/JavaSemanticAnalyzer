@@ -123,6 +123,9 @@ Class_rule: class_token idclass_token '{' Declaration_array_rule '}' {
 /* Memory: Reallocating pointers */
 Declaration_array_rule: Declaration_array_rule Class_declaration_rule {
 
+    /* Adding new declarations into Declaration_array_rule vector 
+       (eg. private int a, b, c - adding these declaraions)
+    */
     $$ = $1;
     
     auto b = $2 -> begin();
@@ -136,6 +139,7 @@ Declaration_array_rule: Declaration_array_rule Class_declaration_rule {
 /* Memory: Deleting string tokens, array of variables */
 Class_declaration_rule: Encapsulation_rule Type_rule Variable_array_rule ';' {
 
+    /* Checking for variable redeclaration in specific class */
     bool succeed = true;
     for(char c : *$3){
         if(_class_local.count(c)){
@@ -148,14 +152,15 @@ Class_declaration_rule: Encapsulation_rule Type_rule Variable_array_rule ';' {
         }
     }
     
+    /* If there was variable redeclaration, exiting program */
     if(!succeed) {
     
         std::cout << std::endl;
         exit(EXIT_SUCCESS);
     }
     
-    $$ = new std::vector<Class_declaration*>();
-    
+    /* Otherwise adding all variables into local class variables table */
+    $$ = new std::vector<Class_declaration*>();    
     for(char c : *$3) {
         
         $$->push_back(new Variable_declaration(*$1, *$2, c));
@@ -170,17 +175,23 @@ Class_declaration_rule: Encapsulation_rule Type_rule Variable_array_rule ';' {
 /* Memory: Deleting pointers, vector, redirecting pointers */
 | Encapsulation_rule Type_rule id_token '(' ')' '{' Statement_array_rule '}' {
 
+    /* Function recognition rule - just one of many class declarations */
     $$ = new std::vector<Class_declaration*>();
     $$->push_back(new Function_declaration(*$1, *$2, $3, *$7));
     
+    /* Adding function into class table (function is a special case
+       of class variable)
+    */
     Variable v($3,*$2);
     _class_local[$3] = v;
+
     _function_local[$3]=  _temp_local;
-    
+    _temp_local.clear();
+
     delete $1;
     delete $2;
     delete $7;
-    _temp_local.clear();
+    
 }
 ;
 
