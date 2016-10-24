@@ -6,23 +6,25 @@
 #include <map>
 #include <algorithm>
 
-class Class;
-class Class_declaration;
-class Function_declaration;
+/* Class hierarchy */
+class Class; 
+class Class_declaration; /* Class contains class declarations which can be: */
+class Variable_declaration;
+class Function_declaration; 
+class Statement; /* Function declaration contains statements which can be: */
 class Expression_statement;
 class Assignment;
 class Declaration;
 class Declaration_and_assigment;
-class Expression;
+class Expression; /* Expression can be: */
 class Variable;
 class Constant;
 class Addition;
 class Method_call;
 class Attribute_call;
 class Function_call;
-class Statement;
 
-
+/*                                CLASS                                    */
 class Class {
     
 public:
@@ -30,23 +32,24 @@ public:
     {}
     
     Class(char name, std::vector<Class_declaration*> cd, std::map<char, Variable> class_local, std::map<char, std::map<char, Variable> > function_local) 
-    :_name(name),_cd(cd), _class_local(class_local)
-    {
+    :_name(name),_cd(cd), _class_local(class_local){
         
         _function_local.insert(function_local.begin(), function_local.end());
     }
-    
-    bool typecheck();
-    std::string get_type(char d);
+
     std::vector<Class_declaration*> get_declarations() {
      
         return _cd;
     }
+
     char get_name() {
      
         return _name;
     }
     
+    bool typecheck();
+    std::string get_type(char d);
+  
 private:
     char _name;
     std::vector<Class_declaration*> _cd;
@@ -54,6 +57,7 @@ private:
     std::map<char, std::map<char, Variable> > _function_local;
 };
 
+/*                                CLASS DECLARATION                             */
 class Class_declaration {
     
 public:
@@ -62,6 +66,8 @@ public:
     virtual char get_name()=0;
     virtual bool typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local) = 0;
 };
+
+/*                              VARIABLE DECLARATION                             */
 class Variable_declaration : public Class_declaration {
   
 public:
@@ -92,6 +98,7 @@ private:
     char _name;
 };
 
+/*                                FUNCTION DECLARATION                           */
 class Function_declaration : public Class_declaration {
 
 public:
@@ -122,6 +129,8 @@ private:
     std::vector<Statement*> _body;
 };
 
+/*                                STATEMENT                                    */
+
 class Statement {
   
 public:
@@ -140,6 +149,7 @@ private:
     Expression *_e;
 };
 
+/*                                ASSIGNMENT                                    */
 class Assignment : public Statement {
 
 public:
@@ -147,11 +157,13 @@ public:
     {}
     
     bool typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name);
+
 private:
     Expression *_rhs;
     char _name;
 };
 
+/*                             DECLARATION                                    */
 class Declaration : public Statement {
     
 public:
@@ -160,11 +172,13 @@ public:
     {}
     
     bool typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name);
+
 private:    
     char _name;
     std::string _type;
 };
 
+/*                   DECLARATION AND ASSIGNMENT                                 */
 class Declaration_and_assigment : public Statement {
 
 public:
@@ -173,12 +187,14 @@ public:
     {}
     
     bool typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name);
+
 private:
     std::string _type;
     Expression *_rhs;
     char _name;
 };
 
+/*                                EXPRESSION                                    */
 class Expression {
 
 public:
@@ -188,6 +204,7 @@ public:
     
 };
 
+/*                                VARIABLE                                    */
 class Variable : public Expression {
     
 public:
@@ -200,10 +217,12 @@ public:
     
     std::string typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name);
     std::string print();
+
     std::string get_type() {
             
         return _type;
     }
+
     std::vector<std::string> get_errors() {
      
         return _errors;
@@ -214,6 +233,7 @@ private:
     std::vector<std::string> _errors;
 };
 
+/*                                CONSTANT                                    */
 class Constant : public Expression {
 
     
@@ -232,12 +252,14 @@ public:
      
         return _errors;
     }
+
 private:
     std::string _type;
     std::string _value;
     std::vector<std::string> _errors;
 };
 
+/*                                ADDITION                                    */
 class Addition : public Expression {
     
 public:
@@ -251,11 +273,13 @@ public:
      
         return _errors;
     }
+
 private:
     Expression *_lhs, *_rhs;
     std::vector<std::string> _errors;
 };
 
+/*                                METHOD CALL                                  */
 class Method_call : public Expression {
     
 public:
@@ -275,6 +299,7 @@ private:
     std::vector<std::string> _errors;
 };
 
+/*                                ATTRIBUTE CALL                                 */
 class Attribute_call : public Expression {
     
 public:

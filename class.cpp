@@ -4,9 +4,8 @@
 #include <map>
 
 extern std::map<char,Class> _class_table;
-extern std::vector<std::map<char,Variable> > _stack;
-extern int _sp;
 
+/* If each class declaration is correct then whole class is correct */
 bool Class::typecheck() {
     
     for(auto d : _cd)
@@ -16,6 +15,9 @@ bool Class::typecheck() {
     return true;
 }
 
+/* Returns type of variable or function if it is declared in 
+   class, otherwise false 
+*/
 std::string Class::get_type(char d) {
     
     for(auto i : _cd)
@@ -25,24 +27,27 @@ std::string Class::get_type(char d) {
     return "false";
 }
 
+/* Variable declaration is always semantically correct */
 bool Variable_declaration::typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local){
     
     return true;
 }
 
+/* Function declaration is correct if each statement in function is correct */
 bool Function_declaration::typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local){
     
-    int type_error = 0;
+    bool has_error = false;
     for(Statement *i : _body)
         if(!i->typecheck(class_local, function_local, _name))
-            type_error = 1;
+            has_error = true;
         
-    if(!type_error)    
-        return true;
+    if(has_error)
+	return false;
     else
-        return false;
+	return true;
 }
 
+/* Checks expression for errors, prints them, returns whether expression is correct or not */
 bool Expression_statement::typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name) {
     
     if(_e->typecheck(class_local,function_local,name) == "false") {
@@ -56,6 +61,7 @@ bool Expression_statement::typecheck(std::map<char,Variable> class_local, std::m
         return true;
 }
 
+/* Checks in which map to look for the variable and if right hand side and left hand side are of compatible types */
 bool Assignment::typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name){
     
     
@@ -105,11 +111,13 @@ bool Assignment::typecheck(std::map<char,Variable> class_local, std::map<char, s
     }
 }
 
+/* Declaration is always semantically carrect */
 bool Declaration::typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name){
     
     return true;
 }
 
+/* Checks in which map to look for the variable and if right hand side and left hand side are of compatible types */
 bool Declaration_and_assigment::typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name){
     
     std::string rhs_typecheck = _rhs->typecheck(class_local,function_local,name);
