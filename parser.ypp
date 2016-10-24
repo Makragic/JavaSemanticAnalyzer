@@ -6,7 +6,7 @@
     #include <cstdlib>
     #include "class.hpp"
     #define YYDEBUG 1
-    extern int yylex();
+    
     
     /* Global map for class declarations */
     std::map<char,Class> _class_table;
@@ -14,11 +14,14 @@
     /* Local variables within class */
     std::map <char, Variable> _class_local;
     
-    /* Temporary map */
+    /* Temporary map for each function and temporary map */
     std::map <char, Variable> _temp_local;
+
+    /* Table that maps function name into all variables in that function */
     std::map <char, std::map<char,Variable> > _function_local;
     
-    /* Error function requred by lex */
+    /* Functions requred by lex */
+    extern int yylex();
     void yyerror(const char *message){
     
         fprintf(stderr, "%s", message);
@@ -63,6 +66,7 @@
 /* Memory: Everything is deleted automatically by OS */
 Program: Class_array_rule end_token {
 
+    /* Iterating through class array and performing type check on each class */
     auto b = $1 -> begin();
     auto e = $1 -> end();
     for(; b !=e; b++) {
@@ -83,29 +87,33 @@ Program: Class_array_rule end_token {
 /* Memory: Reallocating pointers */
 Class_array_rule: Class_array_rule Class_rule {
 
+    /* Adding class to class vector */
     $$ = $1;
     $$->push_back($2);
 }
 | Class_rule {
-    
+
+    /* Creating empty vector and adding class */
     $$ = new std::vector<Class*>();
     $$->push_back($1);
-    
 }
 ;
 
 /* Memory: Copying pointers, deleting vector */
 Class_rule: class_token idclass_token '{' Declaration_array_rule '}' {
 
+    /* Checking if a class with the same name already exists */
     if(_class_table.count($2)){
     
         std::cout << "Redeclaration of " << $2 << " class. \nSemantically incorrect." << std::endl;
         exit(EXIT_SUCCESS);
     }
     
+    /* Otherwise adding the class to the global symbol table */
     $$ = new Class($2, *$4, _class_local, _function_local);
     _class_table[$2] = *$$;
     
+    /* Clearing local maps */
     delete $4;
     _class_local.clear();
     _function_local.clear();
