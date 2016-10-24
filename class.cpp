@@ -137,6 +137,10 @@ bool Declaration_and_assigment::typecheck(std::map<char,Variable> class_local, s
     return false;
 }
 
+/* Typechecks for expressions are different then Typecheck for statements.
+   Typecheck for expressions return expression type, these types are used 
+   in previous functions to figure out whether statements are correct. 
+*/
 std::string Variable::typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name){
     
     return _type;
@@ -148,6 +152,7 @@ std::string Constant::typecheck(std::map<char,Variable> class_local, std::map<ch
     return _type;
 }
 
+/* Addition returns type if they are compatible, or "false" if they are not */
 std::string Addition::typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name){
     
     std::string lhs_type = _lhs->typecheck(class_local,function_local,name);
@@ -168,8 +173,10 @@ std::string Addition::typecheck(std::map<char,Variable> class_local, std::map<ch
     }
 }
 
-
-
+/* Function checks whether method with that name even exists in specific class
+   and whether method is private, if everything is fine function will return 
+   function type, otherwise it will return "false". 
+*/
 std::string Method_call::typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name){
     
     if(!class_local.count(_varname) && !function_local[name].count(_varname)){
@@ -238,6 +245,10 @@ std::string Method_call::typecheck(std::map<char,Variable> class_local, std::map
     
 }
 
+/* Function checks whether attrubute with that name even exists in specific class
+   and whether attribute is private, if everything is fine function will return 
+   attribute type, otherwise it will return "false". 
+*/
 std::string Attribute_call::typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name){
      
     if(!class_local.count(_varname) && !function_local[name].count(_varname)){
@@ -305,6 +316,9 @@ std::string Attribute_call::typecheck(std::map<char,Variable> class_local, std::
     }
 }
 
+/* Checks whether function with that name exists in class, returns its type or
+   "false"
+*/
 std::string Function_call::typecheck(std::map<char,Variable> class_local, std::map<char, std::map<char, Variable> > function_local, char name){
     
     if(!class_local.count(_name)){
@@ -316,7 +330,7 @@ std::string Function_call::typecheck(std::map<char,Variable> class_local, std::m
         return class_local[_name].typecheck(class_local,function_local,name);
 } 
 
-/* ---------------------------------- PRINT ----------------------------- */
+/* Every expression knows to print itself */
 
 std::string Variable::print(){
     
