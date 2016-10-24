@@ -255,6 +255,7 @@ Declaration_rule: Type_rule id_token {
         exit(EXIT_SUCCESS);
     }
 
+    /* Otherwise creating new declaration and updating corresponding sym table */
     $$ = new Declaration($2, *$1);
     Variable v($2,*$1);
     _temp_local[$2] = v;
@@ -263,6 +264,7 @@ Declaration_rule: Type_rule id_token {
 }
 | Type_rule id_token '=' Expression_rule {
     
+        /* Checking for variable redeclaration in specific function */
         if(_temp_local.count($2)){
     
             std::cout << std::endl;
@@ -271,6 +273,9 @@ Declaration_rule: Type_rule id_token {
             exit(EXIT_SUCCESS);
         }
         
+        /* Otherwise creating new declaration and assigment and 
+           updating corresponding sym table 
+        */
         $$ = new Declaration_and_assigment(*$1, $4, $2);
         Variable v($2,*$1);
         _temp_local[$2] = v;
@@ -282,9 +287,11 @@ Declaration_rule: Type_rule id_token {
 /* Memory: Everything knows to delete itself */
 Expression_rule: id_token {
 
+    /* Checking if variable with specific name exists */
     if(!_temp_local.count($1) && !_class_local.count($1))
         $$ = new Variable($1,"false");
     
+    /* Returning variable from corresponding map */
     if(_temp_local.count($1))
         $$ = new Variable($1, _temp_local[$1].get_type());
     else
@@ -325,7 +332,6 @@ Expression_rule: id_token {
 ;
 
 %%
-
 int main(){
 
     yyparse();
