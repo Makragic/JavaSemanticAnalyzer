@@ -140,7 +140,6 @@ Declaration_array_rule: Declaration_array_rule Class_declaration_rule {
 Class_declaration_rule: Encapsulation_rule Type_rule Variable_array_rule ';' {
 
     /* Checking for variable redeclaration in specific class */
-    bool succeed = true;
     for(char c : *$3){
         if(_class_local.count(c)){
             
@@ -148,15 +147,8 @@ Class_declaration_rule: Encapsulation_rule Type_rule Variable_array_rule ';' {
             std::cout << *$1 << " " << *$2 << " " << std::string(1,c) << ":" << std::endl;
             std::cout << "> Redeclaration of variable " << std::string(1,c) << "." <<
             std::endl << "Semantically incorrect." << std::endl;
-            succeed = false;
+            exit(EXIT_SUCCESS);
         }
-    }
-    
-    /* If there was variable redeclaration, exiting program */
-    if(!succeed) {
-    
-        std::cout << std::endl;
-        exit(EXIT_SUCCESS);
     }
     
     /* Otherwise adding all variables into local class variables table */
@@ -185,6 +177,7 @@ Class_declaration_rule: Encapsulation_rule Type_rule Variable_array_rule ';' {
     Variable v($3,*$2);
     _class_local[$3] = v;
 
+    /* Updating local function variables and deleting temporary map */
     _function_local[$3]=  _temp_local;
     _temp_local.clear();
 
@@ -253,6 +246,7 @@ Statement_rule: Declaration_rule
 /* Memory: Only deleting type rule string, everything else know to delete itself */
 Declaration_rule: Type_rule id_token {
 
+    /* Checking for variable redeclaration in specific function */
     if(_temp_local.count($2)){
     
         std::cout << std::endl;
