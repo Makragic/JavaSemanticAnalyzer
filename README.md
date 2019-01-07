@@ -1,2 +1,1 @@
-# Java-Semantic-Analyzer-
-Given correct Abstract Syntax Tree JSA provides answer whether Java code is semantically correct or not. 
+Java semantic analyzer is written using C++, Flex and Bison as a final project for "Compiler Construction" course on Faculty of Mathematics. Assuming Java code has already gone trough Syntax analysis and was correct, using Abstract Syntax Tree (implemented trough C++ class hierarchy) Java Semantic Analyzer performs various types of semantic analysis such as assignment compatibility, privacy checking, attribute/method/class existence, implicit conversions, variable/class/attribute/method redeclaration problems, scope detection, etc. JSA gives answer whether Java code is semantically correct or not.
